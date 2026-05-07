@@ -24,8 +24,10 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-st.image("https://images.unsplash.com/photo-1517649763962-0c623066013b", use_container_width=True)
+st.image(
+    "https://images.unsplash.com/photo-1530549387789-4c1017266635",
+    width=500
+)
 
 st.markdown("""
 <div class="title-box">
