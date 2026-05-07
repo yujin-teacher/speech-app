@@ -1,0 +1,167 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import os
+
+st.set_page_config(page_title="1분 발표 설계실", layout="wide")
+
+DATA_FILE = "student_submissions.csv"
+
+st.title("🎤 1분 발표 설계실")
+st.write("말하기 전에 내 생각을 구조화하고, 발표 내용을 글로 설계해 봅시다.")
+
+# -----------------------------
+# 자동 피드백 함수
+# -----------------------------
+def give_feedback(topic, start, middle, end):
+    feedback = []
+
+    full_text = topic + start + middle + end
+
+    if len(topic.strip()) < 5:
+        feedback.append("✔ 주제가 조금 더 구체적이면 좋아요.")
+    else:
+        feedback.append("✔ 주제가 비교적 분명합니다.")
+
+    if len(start.strip()) < 15:
+        feedback.append("✔ 시작 부분에 질문, 상황, 경험 등을 넣어 관심을 끌어보세요.")
+    else:
+        feedback.append("✔ 시작 부분이 발표의 문을 여는 역할을 하고 있습니다.")
+
+    if len(middle.strip()) < 40:
+        feedback.append("✔ 전개 부분에 자신의 경험, 이유, 근거를 더 자세히 써보세요.")
+    else:
+        feedback.append("✔ 전개 부분에 내용이 비교적 잘 드러나 있습니다.")
+
+    if len(end.strip()) < 20:
+        feedback.append("✔ 마무리에는 내가 전하고 싶은 핵심 메시지를 분명히 써야 합니다.")
+    else:
+        feedback.append("✔ 마무리에서 핵심 메시지를 정리하려는 모습이 보입니다.")
+
+    if "왜냐하면" in full_text or "그래서" in full_text or "때문" in full_text:
+        feedback.append("✔ 이유나 인과관계를 드러내는 표현을 사용했습니다.")
+    else:
+        feedback.append("✔ ‘왜냐하면’, ‘그래서’, ‘~때문에’ 같은 연결 표현을 활용하면 더 자연스럽습니다.")
+
+    return feedback
+
+# -----------------------------
+# 학생 입력
+# -----------------------------
+st.header("① 기본 정보")
+name = st.text_input("이름")
+student_id = st.text_input("학번")
+
+st.header("② 주제 선택")
+topic = st.text_input("내가 말하고 싶은 주제를 한 문장으로 적으세요.")
+
+st.header("③ 발표 내용 작성")
+start = st.text_area("시작: 듣는 사람의 관심을 끌기", height=120)
+middle = st.text_area("전개: 나의 경험, 이유, 근거 제시하기", height=180)
+end = st.text_area("마무리: 핵심 메시지 정리하기", height=120)
+
+st.header("④ 자기 점검")
+check1 = st.checkbox("주제가 분명하다.")
+check2 = st.checkbox("나의 경험이나 이유가 들어갔다.")
+check3 = st.checkbox("시작-전개-마무리 구조가 있다.")
+check4 = st.checkbox("실제로 말하듯 자연스럽게 썼다.")
+
+st.header("⑤ 자동 피드백 받기")
+if st.button("피드백 확인하기"):
+    feedback = give_feedback(topic, start, middle, end)
+    for f in feedback:
+        st.write(f)
+
+st.header("⑥ 한 줄 성찰")
+reflection = st.text_area("이번 글을 쓰며 내가 새롭게 깨달은 점을 적으세요.", height=100)
+
+# -----------------------------
+# 평가 기준
+# -----------------------------
+st.header("📊 평가 기준")
+
+rubric = pd.DataFrame({
+    "평가 요소": ["내용의 명확성", "구조의 완성도", "설득력", "표현력"],
+    "5점": [
+        "주제와 핵심 메시지가 매우 분명함",
+        "시작-전개-마무리가 자연스럽고 완성도 있음",
+        "경험, 이유, 근거가 구체적이고 설득력 있음",
+        "말하기 상황에 어울리는 표현을 자연스럽게 사용함"
+    ],
+    "3점": [
+        "주제는 드러나지만 핵심 메시지가 다소 약함",
+        "구조는 있으나 일부 연결이 어색함",
+        "경험이나 이유가 있으나 구체성이 부족함",
+        "표현은 가능하나 말하기 상황에 맞는 자연스러움이 부족함"
+    ],
+    "1점": [
+        "주제와 메시지가 불분명함",
+        "구조가 거의 드러나지 않음",
+        "근거와 경험이 부족함",
+        "표현이 단순하거나 전달력이 부족함"
+    ]
+})
+
+st.table(rubric)
+
+# -----------------------------
+# 제출 저장
+# -----------------------------
+st.header("⑦ 최종 제출")
+
+if st.button("최종 제출하기"):
+    if not name or not student_id or not topic or not start or not middle or not end:
+        st.warning("이름, 학번, 주제, 시작, 전개, 마무리를 모두 입력해야 제출할 수 있습니다.")
+    else:
+        feedback_text = " / ".join(give_feedback(topic, start, middle, end))
+
+        new_data = pd.DataFrame([{
+            "제출시간": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "이름": name,
+            "학번": student_id,
+            "주제": topic,
+            "시작": start,
+            "전개": middle,
+            "마무리": end,
+            "성찰": reflection,
+            "자가점검_주제명확": check1,
+            "자가점검_경험이유": check2,
+            "자가점검_구조": check3,
+            "자가점검_자연스러움": check4,
+            "자동피드백": feedback_text
+        }])
+
+        if os.path.exists(DATA_FILE):
+            old_data = pd.read_csv(DATA_FILE)
+            final_data = pd.concat([old_data, new_data], ignore_index=True)
+        else:
+            final_data = new_data
+
+        final_data.to_csv(DATA_FILE, index=False, encoding="utf-8-sig")
+
+        st.success("제출이 완료되었습니다. 수고했습니다!")
+
+# -----------------------------
+# 교사용 확인
+# -----------------------------
+st.write("---")
+st.header("🔒 교사용 제출 확인")
+
+password = st.text_input("교사용 비밀번호를 입력하세요.", type="password")
+
+if password == "teacher1234":
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
+        st.dataframe(df)
+
+        csv = df.to_csv(index=False, encoding="utf-8-sig")
+        st.download_button(
+            label="학생 제출 답안 CSV 다운로드",
+            data=csv,
+            file_name="화법과언어_1분발표_제출답안.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("아직 제출된 답안이 없습니다.")
+elif password:
+    st.error("비밀번호가 틀렸습니다.")
