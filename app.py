@@ -7,8 +7,35 @@ st.set_page_config(page_title="1분 발표 설계실", layout="wide")
 
 DATA_FILE = "student_submissions.csv"
 
-st.title("🎤 1분 발표 설계실")
-st.write("말하기 전에 내 생각을 구조화하고, 발표 내용을 글로 설계해 봅시다.")
+st.markdown("""
+<style>
+.main {
+    background-color: #f7f9fc;
+}
+.title-box {
+    background-color: #eef4ff;
+    padding: 28px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+}
+.small-text {
+    font-size: 18px;
+    color: #444444;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.image("https://images.unsplash.com/photo-1517649763962-0c623066013b", use_container_width=True)
+
+st.markdown("""
+<div class="title-box">
+<h1>🎤 체육고 2학년 화법과 언어 수행평가</h1>
+<p class="small-text">
+말하기·대화하기 수업에서 배운 내용을 바탕으로,
+자신의 생각을 구조화하여 발표문으로 작성해 봅시다.
+</p>
+</div>
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # 자동 피드백 함수
